@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiment Report — dlinear_etth1_mse_trend_fixed</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:      #f8f9fb;
+    --card:    #ffffff;
+    --border:  #e2e8f0;
+    --accent:  #4f46e5;
+    --accent2: #06b6d4;
+    --text:    #1e293b;
+    --muted:   #64748b;
+    --green:   #10b981;
+    --orange:  #f59e0b;
+    --red:     #ef4444;
+    --purple:  #8b5cf6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6;
+  }
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Header */
+  .header { background: var(--accent); color: #fff; border-radius: 12px;
+             padding: 32px 36px; margin-bottom: 32px; }
+  .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .header .meta { opacity: 0.85; font-size: 13px; }
+  .badge { display: inline-block; background: rgba(255,255,255,0.2);
+            border-radius: 999px; padding: 2px 12px; font-size: 12px;
+            font-weight: 600; margin-right: 8px; margin-top: 8px; }
+
+  /* Section */
+  .section { background: var(--card); border: 1px solid var(--border);
+              border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+  .section h2 { font-size: 16px; font-weight: 700; color: var(--accent);
+                 margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+
+  /* Config table */
+  .config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                  gap: 12px; }
+  .config-item { background: var(--bg); border-radius: 8px; padding: 12px 14px; }
+  .config-key { font-size: 11px; color: var(--muted); text-transform: uppercase;
+                 letter-spacing: 0.05em; margin-bottom: 2px; }
+  .config-val { font-weight: 600; font-size: 14px; color: var(--text); }
+
+  /* Metric cards */
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .metric-card { border-radius: 10px; padding: 20px 18px; text-align: center; color: #fff; }
+  .metric-card .label { font-size: 12px; font-weight: 600; opacity: 0.85;
+                          text-transform: uppercase; letter-spacing: 0.06em; }
+  .metric-card .value { font-size: 28px; font-weight: 800; margin-top: 6px; }
+  .metric-card.mse   { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .metric-card.mae   { background: linear-gradient(135deg, #06b6d4, #0284c7); }
+  .metric-card.rmse  { background: linear-gradient(135deg, #10b981, #059669); }
+  .metric-card.mape  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+  /* Chart */
+  .chart-container { position: relative; height: 300px; }
+
+  /* Footer */
+  .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 32px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Experiment Report</h1>
+    <div class="meta">2026-07-04  20:38:32</div>
+    <div style="margin-top:10px;">
+      <span class="badge">dlinear_etth1_mse_trend_fixed</span>
+      <span class="badge">DLinear</span>
+      <span class="badge">ETTh1</span>
+      <span class="badge">loss: mse_trend_fixed</span>
+      <span class="badge">pred_len: 96</span>
+    </div>
+  </div>
+
+  <!-- Experiment Configuration -->
+  <div class="section">
+    <h2>Experiment Configuration</h2>
+    <p class="subtitle">Full hyperparameter settings for this run</p>
+    <div class="config-grid">
+      <div class="config-item"><div class="config-key">exp id</div><div class="config-val">dlinear_etth1_mse_trend_fixed</div></div>
+<div class="config-item"><div class="config-key">model name</div><div class="config-val">DLinear</div></div>
+<div class="config-item"><div class="config-key">data name</div><div class="config-val">ETTh1</div></div>
+<div class="config-item"><div class="config-key">loss type</div><div class="config-val">mse_trend_fixed</div></div>
+<div class="config-item"><div class="config-key">seq len</div><div class="config-val">336</div></div>
+<div class="config-item"><div class="config-key">pred len</div><div class="config-val">96</div></div>
+<div class="config-item"><div class="config-key">num features</div><div class="config-val">7</div></div>
+<div class="config-item"><div class="config-key">epochs</div><div class="config-val">50</div></div>
+<div class="config-item"><div class="config-key">batch size</div><div class="config-val">32</div></div>
+<div class="config-item"><div class="config-key">learning rate</div><div class="config-val">0.0001</div></div>
+<div class="config-item"><div class="config-key">weight decay</div><div class="config-val">1e-05</div></div>
+<div class="config-item"><div class="config-key">patience</div><div class="config-val">5</div></div>
+<div class="config-item"><div class="config-key">moving avg</div><div class="config-val">25</div></div>
+<div class="config-item"><div class="config-key">weight gen hidden dim</div><div class="config-val">64</div></div>
+<div class="config-item"><div class="config-key">weight gen dropout</div><div class="config-val">0.1</div></div>
+<div class="config-item"><div class="config-key">weight gen temperature</div><div class="config-val">1.0</div></div>
+<div class="config-item"><div class="config-key">num stat features</div><div class="config-val">6</div></div>
+<div class="config-item"><div class="config-key">device</div><div class="config-val">cpu</div></div>
+    </div>
+  </div>
+
+  <!-- Test Metrics -->
+  <div class="section">
+    <h2>Test Results</h2>
+    <p class="subtitle">Evaluated on the held-out test set using the best validation checkpoint</p>
+    <div class="metric-grid">
+      <div class="metric-card mse"><div class="label">MSE</div><div class="value">9.2388</div></div>
+<div class="metric-card mae"><div class="label">MAE</div><div class="value">1.6290</div></div>
+<div class="metric-card rmse"><div class="label">RMSE</div><div class="value">3.0395</div></div>
+    </div>
+  </div>
+
+  <!-- Training Loss Curve -->
+  <div class="section">
+    <h2>Training Curve</h2>
+    <p class="subtitle">Train and validation loss per epoch</p>
+    <div class="chart-container">
+      <canvas id="lossChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Adaptive Weight Evolution (only for adaptive loss) -->
+  
+
+  <div class="footer">
+    Generated by Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-04  20:38:32
+  </div>
+</div>
+
+<script>
+
+const lossCtx = document.getElementById('lossChart').getContext('2d');
+new Chart(lossCtx, {
+  type: 'line',
+  data: {
+    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+    datasets: [
+      {
+        label: 'Train Loss',
+        data: [0.875413, 0.457278, 0.369712, 0.327419, 0.302896, 0.286572, 0.274854, 0.265945, 0.258653, 0.252843, 0.247932, 0.243637, 0.240245, 0.237174, 0.234514, 0.23233, 0.230346, 0.228526, 0.226968, 0.225504, 0.22447, 0.22339, 0.222354, 0.221523, 0.22067, 0.220033, 0.219443, 0.218888, 0.218285, 0.217793, 0.217418, 0.217152, 0.216786, 0.216395, 0.216169, 0.215912, 0.215726, 0.215504, 0.215208, 0.215089, 0.214874, 0.214791, 0.21466, 0.214588, 0.214427, 0.214291, 0.214164, 0.214014, 0.213997, 0.213809],
+        borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true,
+      },
+      {
+        label: 'Val Loss',
+        data: [0.84152, 0.640784, 0.560755, 0.516284, 0.495169, 0.477385, 0.463528, 0.450117, 0.444335, 0.435026, 0.428971, 0.427834, 0.422977, 0.417068, 0.41521, 0.416837, 0.410372, 0.408805, 0.407661, 0.401151, 0.403696, 0.403647, 0.397155, 0.398973, 0.39518, 0.396507, 0.395235, 0.395175, 0.394125, 0.391909, 0.395946, 0.391621, 0.397007, 0.389844, 0.392164, 0.389455, 0.388544, 0.389565, 0.391632, 0.389629, 0.392729, 0.386874, 0.387683, 0.390159, 0.386247, 0.390862, 0.390028, 0.393065, 0.390021, 0.390823],
+        borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { title: { display: true, text: 'Epoch' } },
+      y: { title: { display: true, text: 'Loss' } }
+    }
+  }
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeightGeneratorMLP는 어떻게 학습되는가</title>
+<style>
+  :root {
+    --bg: #eef0ee;
+    --grid-line: rgba(47, 60, 55, 0.06);
+    --surface: #ffffff;
+    --surface-2: #e4e7e4;
+    --ink: #1b2321;
+    --muted: #5b6663;
+    --line: #d3d7d4;
+    --line-strong: #b7bdb9;
+    --fixed: #2f6e68;
+    --fixed-bg: rgba(47, 110, 104, 0.08);
+    --fixed-bg-strong: rgba(47, 110, 104, 0.16);
+    --adaptive: #b85a26;
+    --adaptive-bg: rgba(184, 90, 38, 0.08);
+    --adaptive-bg-strong: rgba(184, 90, 38, 0.16);
+    --code-bg: #f3f4f2;
+    --shadow: 0 1px 2px rgba(20, 26, 24, 0.04), 0 6px 20px rgba(20, 26, 24, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181a;
+      --grid-line: rgba(180, 200, 195, 0.05);
+      --surface: #1b2123;
+      --surface-2: #232a2c;
+      --ink: #e7ebe8;
+      --muted: #93a099;
+      --line: #2b3234;
+      --line-strong: #3a4345;
+      --fixed: #6bbdb4;
+      --fixed-bg: rgba(107, 189, 180, 0.1);
+      --fixed-bg-strong: rgba(107, 189, 180, 0.18);
+      --adaptive: #e8975a;
+      --adaptive-bg: rgba(232, 151, 90, 0.1);
+      --adaptive-bg-strong: rgba(232, 151, 90, 0.18);
+      --code-bg: #1f2628;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14181a; --grid-line: rgba(180, 200, 195, 0.05);
+    --surface: #1b2123; --surface-2: #232a2c; --ink: #e7ebe8; --muted: #93a099;
+    --line: #2b3234; --line-strong: #3a4345;
+    --fixed: #6bbdb4; --fixed-bg: rgba(107, 189, 180, 0.1); --fixed-bg-strong: rgba(107, 189, 180, 0.18);
+    --adaptive: #e8975a; --adaptive-bg: rgba(232, 151, 90, 0.1); --adaptive-bg-strong: rgba(232, 151, 90, 0.18);
+    --code-bg: #1f2628;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #eef0ee; --grid-line: rgba(47, 60, 55, 0.06);
+    --surface: #ffffff; --surface-2: #e4e7e4; --ink: #1b2321; --muted: #5b6663;
+    --line: #d3d7d4; --line-strong: #b7bdb9;
+    --fixed: #2f6e68; --fixed-bg: rgba(47, 110, 104, 0.08); --fixed-bg-strong: rgba(47, 110, 104, 0.16);
+    --adaptive: #b85a26; --adaptive-bg: rgba(184, 90, 38, 0.08); --adaptive-bg-strong: rgba(184, 90, 38, 0.16);
+    --code-bg: #f3f4f2;
+    --shadow: 0 1px 2px rgba(20, 26, 24, 0.04), 0 6px 20px rgba(20, 26, 24, 0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  body {
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+
+  code, .mono, .stage-no, .eyebrow, .file-tag, .step-tag, h1, h2, .force-tag {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+
+  .page { max-width: 760px; margin: 0 auto; padding: 56px 24px 88px; }
+
+  /* Masthead */
+  .eyebrow {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    padding-bottom: 14px;
+  }
+  h1 {
+    font-size: clamp(26px, 4.2vw, 34px); font-weight: 700; letter-spacing: -0.01em;
+    line-height: 1.2; text-wrap: balance; max-width: 20ch;
+  }
+  .thesis { margin-top: 16px; max-width: 62ch; color: var(--muted); font-size: 15.5px; }
+
+  .toc {
+    margin-top: 36px; padding: 18px 22px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 5px; box-shadow: var(--shadow);
+  }
+  .toc-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .toc ol { list-style: none; display: flex; flex-direction: column; gap: 6px; counter-reset: toc; }
+  .toc li { counter-increment: toc; font-size: 14px; }
+  .toc li::before { content: counter(toc) "."; color: var(--adaptive); font-weight: 700; margin-right: 8px; font-family: ui-monospace, monospace; }
+
+  /* Sections */
+  section.doc { margin-top: 56px; }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .sec-no { font-size: 13px; color: var(--adaptive); font-weight: 700; }
+  h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  section.doc > p { color: var(--ink); margin: 14px 0; max-width: 66ch; }
+  section.doc > p.muted { color: var(--muted); font-size: 14px; }
+
+  .file-tag {
+    font-size: 11.5px; color: var(--muted); background: var(--surface-2);
+    padding: 2px 8px; border-radius: 3px; display: inline-block; margin-bottom: 4px;
+  }
+
+  /* Code panels */
+  .code-panel {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px;
+    padding: 16px 18px; margin: 16px 0; overflow-x: auto;
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13px; line-height: 1.7; white-space: pre;
+  }
+  .code-panel .c { color: var(--muted); }
+  .code-panel .k { color: var(--adaptive); }
+  .code-panel .f { color: var(--fixed); }
+
+  /* Step list */
+  ol.steps {
+    list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 18px;
+    margin: 18px 0;
+  }
+  ol.steps li { counter-increment: step; position: relative; padding-left: 34px; }
+  ol.steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 1px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--adaptive-bg-strong); color: var(--adaptive);
+    font-size: 12px; font-weight: 700; font-family: ui-monospace, monospace;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps li strong { display: block; font-size: 14.5px; margin-bottom: 4px; }
+  ol.steps li p { color: var(--muted); font-size: 13.5px; }
+
+  /* Force cards (backward pass) */
+  .force-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 20px 0; }
+  @media (max-width: 640px) { .force-grid { grid-template-columns: 1fr; } }
+  .force {
+    border: 1px solid var(--line); border-radius: 5px; padding: 18px 20px;
+  }
+  .force-collapse { border-top: 3px solid var(--adaptive); background: var(--adaptive-bg); }
+  .force-restore { border-top: 3px solid var(--fixed); background: var(--fixed-bg); }
+  .force-tag {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700;
+  }
+  .force-collapse .force-tag { color: var(--adaptive); }
+  .force-restore .force-tag { color: var(--fixed); }
+  .force h3 { font-size: 14.5px; margin: 6px 0 8px; font-weight: 700; }
+  .force p { font-size: 13.5px; color: var(--muted); }
+
+  /* Callout */
+  .callout {
+    border-left: 3px solid var(--adaptive); background: var(--adaptive-bg);
+    padding: 14px 18px; border-radius: 0 5px 5px 0; margin: 18px 0; font-size: 14px;
+  }
+  .callout strong { color: var(--adaptive); }
+
+  /* KV table */
+  .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin: 16px 0; }
+  @media (max-width: 560px) { .kv-grid { grid-template-columns: 1fr; } }
+  .kv { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-family: ui-monospace, monospace; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+  /* Result strip */
+  .result-strip {
+    display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0;
+  }
+  .result-chip {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    padding: 10px 16px; font-size: 13px; text-align: center; min-width: 100px;
+  }
+  .result-chip .label { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+  .result-chip .value { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; }
+
+  .colophon {
+    margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--line);
+    font-size: 13.5px; color: var(--muted); max-width: 66ch;
+  }
+  .colophon strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <span class="eyebrow">learnable_loss_function_tsf — 학습 메커니즘 노트</span>
+    <h1>WeightGeneratorMLP는<br>어떻게 학습되는가</h1>
+    <p class="thesis">
+      샘플마다 mse / mae / trend loss에 줄 가중치를 예측하는 작은 MLP가,
+      백본(DLinear)과 같은 backward pass 안에서 정확히 어떤 신호를 받아 갱신되는지
+      forward → backward → optimizer 순서로 따라간다.
+    </p>
+    <nav class="toc">
+      <div class="toc-title">Contents</div>
+      <ol>
+        <li>초기화 — 아무것도 모르는 상태에서 시작</li>
+        <li>Forward 한 스텝, 실제 수치와 함께</li>
+        <li>Backward — 두 힘의 줄다리기</li>
+        <li>Optimizer — 백본과 다른 속도로</li>
+        <li>여러 epoch에 걸쳐 실제로 일어나는 일</li>
+      </ol>
+    </nav>
+  </header>
+
+  <!-- 0 -->
+  <section class="doc">
+    <div class="sec-head"><span class="sec-no">01</span><h2>초기화 — 아무것도 모르는 상태에서 시작</h2></div>
+    <span class="file-tag">weight_generator/mlp_generator.py:68-78</span>
+    <p>
+      <code>WeightGeneratorMLP._init_weights()</code>가 마지막 Linear layer의 weight와 bias를
+      <strong>전부 0</strong>으로 초기화한다. 그러면 첫 forward에서
+      <code>logits = Linear(64→3)(...) = 0</code>이 되고,
+      <code>softmax(0 / 1.5) = [1/3, 1/3, 1/3]</code>.
+    </p>
+    <div class="callout">
+      학습 시작 시점엔 무조건 균등 가중치에서 출발한다 — "어떤 loss를 더 믿어야 할지 아직 모르니
+      일단 공평하게"라는 설계.
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="doc">
+    <div class="sec-head"><span class="sec-no">02</span><h2>Forward 한 스텝, 실제 수치와 함께</h2></div>
+    <span class="file-tag">features/statistical_extractor.py · losses/adaptive_loss.py · weight_generator/mlp_generator.py</span>
+    <p class="muted">배치 하나가 들어올 때 (trainer.py:108-114 → adaptive_loss.py:119-158) 일어나는 4단계.</p>
+
+    <ol class="steps">
+      <li>
+        <strong>피처 추출 + 정규화</strong>
+        <div class="code-panel"><span class="c">x_enc (B,336,C)</span> → 6개 통계량(variance, skew, kurtosis, acf1, spectral_entropy, trend_strength)
+              → 채널 평균 → raw features (B,6)
+학습 중이면: running_mean/std를 EMA로 갱신 <span class="k">(momentum=0.9)</span>
+              → normalized = (features - running_mean) / (running_std + eps)</div>
+        <p>이 EMA는 학습 가능한 파라미터가 아니라 <strong>buffer</strong>다 — gradient로 최적화되는 게
+        아니라 지금까지 본 배치들의 평균/표준편차를 누적 추적하는 통계치일 뿐이다.</p>
+      </li>
+
+      <li>
+        <strong>detach — 여기서 그래프가 끊긴다</strong>
+        <div class="code-panel">weights = self.weight_generator(features<span class="k">.detach()</span>)</div>
+        <p><code>features</code>는 <code>x_enc</code>로부터 나온 미분 가능한 텐서지만
+        <code>.detach()</code>로 그래프를 잘라버린다. <strong>feature extractor 쪽으로는 gradient가
+        절대 안 흐른다</strong> — 학습되는 파라미터는 오직 <code>weight_generator.net</code> 안의
+        2개 Linear + LayerNorm뿐이다.</p>
+      </li>
+
+      <li>
+        <strong>MLP forward</strong>
+        <div class="code-panel">normalized features (B,6)
+→ Linear(6→64) → LayerNorm(64) → ReLU → Dropout(.1)
+→ Linear(64→3) = logits (B,3)
+→ softmax(logits / <span class="k">1.5</span>) = raw_weights (B,3), 합=1
+→ floor rescale: w = raw_weights × (1 − 3×0.05) + 0.05
+              = raw_weights × <span class="k">0.85</span> + <span class="k">0.05</span></div>
+        <p>마지막 floor 연산이 이번에 추가한 안전장치다 — softmax가 아무리 쏠려도
+        (예: raw_weights=[.999,.0005,.0005]) 최종 <code>w</code>는 [.899,.0504,.0504]로,
+        어떤 컴포넌트도 5% 밑으로는 내려가지 않는다.</p>
+      </li>
+
+      <li>
+        <strong>loss 계산 + 정규화 → 최종 스칼라</strong>
+        <div class="code-panel">raw_losses = [MSE, MAE, Trend](pred, target)      <span class="c">(B,3)</span>
+norm_losses = raw_losses / loss_running_mean   <span class="c">(EMA, momentum=0.9)</span>
+
+weighted = (w * norm_losses).sum(dim=1).mean()   <span class="c"># 배치 평균</span>
+entropy  = -(w * log(w)).sum(dim=1).mean()
+total    = weighted - <span class="k">0.3</span> * entropy</div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 2 -->
+  <section class="doc">
+    <div class="sec-head"><span class="sec-no">03</span><h2>Backward — 두 힘의 줄다리기</h2></div>
+    <p>
+      <code>total.backward()</code>가 호출되면 체인룰을 타고 <code>w</code>(MLP 출력)까지 올라간다.
+      floor rescale은 선형식이라 미분에 상수 <code>0.85</code>가 곱해질 뿐 방향은 안 바뀐다.
+      핵심은 softmax 이전 <code>raw_w</code>에 대한 gradient:
+    </p>
+    <div class="code-panel">∂total/∂raw_w_i  =  norm_loss_i  −  0.3 × (−log(w_i) − 1)</div>
+    <p class="muted">직관적으로 풀면 서로 반대 방향으로 당기는 두 힘의 합이다.</p>
+
+    <div class="force-grid">
+      <div class="force force-collapse">
+        <span class="force-tag">collapse pressure</span>
+        <h3>norm_loss 항</h3>
+        <p>이 성분의 (정규화된) loss가 클수록 <code>w_i</code>를 늘리면 <code>total</code>이 커지므로,
+        gradient는 "이 컴포넌트의 weight를 줄여라"는 방향을 만든다. 반대로 지금 상대적으로 loss가
+        작은 컴포넌트는 "weight를 늘려도 손해가 적다"는 유인이 생긴다 — 그대로 두면 한쪽으로
+        몰빵(collapse)하는 힘이다.</p>
+      </div>
+      <div class="force force-restore">
+        <span class="force-tag">restoring force</span>
+        <h3>엔트로피 항</h3>
+        <p><code>w_i</code>가 0이나 1에 가까울수록 <code>−log(w_i)</code>가 극단값을 가지므로, 이 항의
+        gradient는 <code>w</code>를 균등 방향으로 되돌리는 힘을 만든다.
+        <code>entropy_coef = 0.3</code>이 이 되돌리는 힘의 세기다.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      최종 <code>w</code>는 이 두 힘의 줄다리기 결과다. 여기에 <strong>floor(0.05)</strong>가 세 번째
+      안전장치로 얹혀서, 두 힘의 균형이 한쪽으로 크게 기울어도 구조적으로 완전히 0이 되는 걸 막는다.
+    </div>
+
+    <p>
+      이 gradient는 <code>Linear(64→3)</code>의 weight/bias, 그리고 체인룰을 타고
+      <code>LayerNorm</code>, <code>Linear(6→64)</code>의 weight/bias까지 전부에 전달된다 —
+      "어떤 피처 조합(변동성 높음 + 추세 강함 등)일 때 어떤 컴포넌트를 더/덜 신뢰할지"의 매핑 자체가
+      이 gradient로 조금씩 조정된다.
+    </p>
+  </section>
+
+  <!-- 3 -->
+  <section class="doc">
+    <div class="sec-head"><span class="sec-no">04</span><h2>Optimizer — 백본과 다른 속도로</h2></div>
+    <span class="file-tag">trainer/trainer.py</span>
+    <p>같은 <code>total.backward()</code> 한 번으로 백본과 MLP가 동시에 gradient를 받지만,
+    파라미터 그룹을 분리해서 서로 다른 학습률로 갱신한다.</p>
+    <div class="kv-grid">
+      <div class="kv"><span class="k">backbone.parameters()</span><span class="v">lr = 1e-4</span></div>
+      <div class="kv"><span class="k">weight_generator.parameters()</span><span class="v">lr = 1e-4 × 0.5 = 5e-5</span></div>
+      <div class="kv"><span class="k">gradient clipping</span><span class="v">clip_grad_norm_(all, max_norm=1.0)</span></div>
+      <div class="kv"><span class="k">optimizer</span><span class="v">Adam, weight_decay 1e-5</span></div>
+    </div>
+    <p class="muted">
+      MLP가 상대적으로 더 예민하고 불안정한 부분이라, 백본이 급하게 바뀌는 통계량을 MLP가 너무 빨리
+      뒤쫓다가 진동하는 걸 완화하려는 목적이다.
+    </p>
+  </section>
+
+  <!-- 4 -->
+  <section class="doc">
+    <div class="sec-head"><span class="sec-no">05</span><h2>여러 epoch에 걸쳐 실제로 일어나는 일</h2></div>
+    <p><strong>초반 epoch</strong> — <code>w</code>는 균등([1/3,1/3,1/3] 근처)에서 시작, EMA(피처·loss)가
+    아직 실제 스케일을 잘 못 따라잡은 상태라 정규화가 다소 부정확 → weight가 다소 요동친다.</p>
+    <p><strong>중반</strong> — EMA가 안정화되며 정규화가 정확해지고, 두 힘(loss 압력 vs 엔트로피)의
+    균형점 근처로 <code>w</code>가 서서히 수렴한다.</p>
+    <p>ETTh1에서 실제로 확인된 값 (45 epoch 시점, early stopping 직전):</p>
+    <div class="result-strip">
+      <div class="result-chip"><div class="label">w_mse</div><div class="value">≈ 0.40</div></div>
+      <div class="result-chip"><div class="label">w_mae</div><div class="value">≈ 0.35</div></div>
+      <div class="result-chip"><div class="label">w_trend</div><div class="value">≈ 0.25</div></div>
+    </div>
+    <p>균등(각 0.33)에서 크게 벗어나지 않은 채 정착한다.</p>
+    <div class="callout">
+      즉 지금 설정에서 MLP가 배우는 최종 결과는 "샘플마다 크게 다른 정책"이라기보다
+      <strong>"대체로 균등에 가까운, 살짝 mse/mae 쪽으로 치우친 고정적인 정책"</strong>에 가깝다 —
+      이게 <code>mse_mae_trend_fixed</code>(고정 균등 ⅓/⅓/⅓)와 성능이 거의 같았던
+      (MSE 9.165 vs 9.149) 이유와 직접 연결된다.
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <p>관련 문서: <strong>result/architecture.html</strong> — 데이터부터 backward까지 전체 파이프라인 스키매틱.
+    이 문서는 그중 03번 Loss 스테이지의 adaptive 경로를 확대한 버전이다.</p>
+  </footer>
+
+</div>
+</body>
+</html>

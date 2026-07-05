@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# OS junk
+.DS_Store
+
+# Datasets — third-party, large; see README for download commands
+data/
+
+# Training artifacts — checkpoints, per-run logs (regenerable via scripts/run_ablation*.sh)
+outputs/
+*.pt
+
+# Misc local logs
+*.log

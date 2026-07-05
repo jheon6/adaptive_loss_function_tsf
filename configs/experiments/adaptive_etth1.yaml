@@ -1,0 +1,17 @@
+exp_id: dlinear_etth1_adaptive
+loss_type: adaptive
+model_name: DLinear
+data_name: ETTh1
+pred_len: 96
+seq_len: 336
+epochs: 50
+batch_size: 32
+learning_rate: 0.0001
+weight_gen_hidden_dim: 64
+weight_gen_dropout: 0.1
+weight_gen_temperature: 1.5
+weight_gen_min_weight: 0.05
+weight_gen_lr_scale: 0.5
+entropy_coef: 0.3
+loss_norm_momentum: 0.9
+feature_norm_momentum: 0.9

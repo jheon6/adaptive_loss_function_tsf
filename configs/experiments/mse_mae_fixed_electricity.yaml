@@ -1,0 +1,9 @@
+exp_id: dlinear_electricity_mse_mae_fixed
+loss_type: mse_mae_fixed
+model_name: DLinear
+data_name: Electricity
+pred_len: 96
+seq_len: 336
+epochs: 50
+batch_size: 32
+learning_rate: 0.0001

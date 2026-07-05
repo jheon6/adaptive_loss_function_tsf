@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adaptive Loss Weighting — Architecture</title>
+<style>
+  :root {
+    --bg: #eef0ee;
+    --grid-line: rgba(47, 60, 55, 0.06);
+    --surface: #ffffff;
+    --surface-2: #e4e7e4;
+    --ink: #1b2321;
+    --muted: #5b6663;
+    --line: #d3d7d4;
+    --line-strong: #b7bdb9;
+    --fixed: #2f6e68;
+    --fixed-bg: rgba(47, 110, 104, 0.08);
+    --fixed-bg-strong: rgba(47, 110, 104, 0.14);
+    --adaptive: #b85a26;
+    --adaptive-bg: rgba(184, 90, 38, 0.08);
+    --adaptive-bg-strong: rgba(184, 90, 38, 0.14);
+    --shadow: 0 1px 2px rgba(20, 26, 24, 0.04), 0 6px 20px rgba(20, 26, 24, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181a;
+      --grid-line: rgba(180, 200, 195, 0.05);
+      --surface: #1b2123;
+      --surface-2: #232a2c;
+      --ink: #e7ebe8;
+      --muted: #93a099;
+      --line: #2b3234;
+      --line-strong: #3a4345;
+      --fixed: #6bbdb4;
+      --fixed-bg: rgba(107, 189, 180, 0.1);
+      --fixed-bg-strong: rgba(107, 189, 180, 0.16);
+      --adaptive: #e8975a;
+      --adaptive-bg: rgba(232, 151, 90, 0.1);
+      --adaptive-bg-strong: rgba(232, 151, 90, 0.16);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14181a;
+    --grid-line: rgba(180, 200, 195, 0.05);
+    --surface: #1b2123;
+    --surface-2: #232a2c;
+    --ink: #e7ebe8;
+    --muted: #93a099;
+    --line: #2b3234;
+    --line-strong: #3a4345;
+    --fixed: #6bbdb4;
+    --fixed-bg: rgba(107, 189, 180, 0.1);
+    --fixed-bg-strong: rgba(107, 189, 180, 0.16);
+    --adaptive: #e8975a;
+    --adaptive-bg: rgba(232, 151, 90, 0.1);
+    --adaptive-bg-strong: rgba(232, 151, 90, 0.16);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #eef0ee;
+    --grid-line: rgba(47, 60, 55, 0.06);
+    --surface: #ffffff;
+    --surface-2: #e4e7e4;
+    --ink: #1b2321;
+    --muted: #5b6663;
+    --line: #d3d7d4;
+    --line-strong: #b7bdb9;
+    --fixed: #2f6e68;
+    --fixed-bg: rgba(47, 110, 104, 0.08);
+    --fixed-bg-strong: rgba(47, 110, 104, 0.14);
+    --adaptive: #b85a26;
+    --adaptive-bg: rgba(184, 90, 38, 0.08);
+    --adaptive-bg-strong: rgba(184, 90, 38, 0.14);
+    --shadow: 0 1px 2px rgba(20, 26, 24, 0.04), 0 6px 20px rgba(20, 26, 24, 0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  body {
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  code, .mono, .stage-no, .eyebrow, .file-tag, .shape, .hp, .legend, .card-head h2, h1, .converge {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  /* ---------- Masthead ---------- */
+
+  .masthead { margin-bottom: 64px; }
+
+  .eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 14px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4.4vw, 40px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.14;
+    text-wrap: balance;
+    max-width: 16ch;
+  }
+
+  .thesis {
+    margin-top: 18px;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 15.5px;
+  }
+
+  .meta-row {
+    margin-top: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+
+  .meta-row dt {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .meta-row dd {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+  }
+
+  .status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-tag::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--adaptive);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .status-tag::before { animation: none; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  /* ---------- Schematic spine ---------- */
+
+  .schematic {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  .schematic::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: var(--line);
+  }
+
+  .stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .rail-node {
+    justify-self: center;
+    margin-top: 22px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 3px solid var(--bg);
+    position: relative;
+    z-index: 1;
+  }
+
+  .stage-loss .rail-node { background: var(--adaptive); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+    padding: 22px 26px 26px;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .stage-no {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .card-head h2 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .file-tag {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--surface-2);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  .stage p.desc {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 68ch;
+    margin-bottom: 14px;
+  }
+
+  .shape {
+    font-size: 12.5px;
+    background: var(--surface-2);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* ---------- Flow diagrams (data / backbone) ---------- */
+
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 6px 0 18px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface-2);
+    font-size: 12.5px;
+    text-align: center;
+    min-width: 108px;
+  }
+
+  .flow-step strong {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .flow-arrow {
+    color: var(--line-strong);
+    font-size: 16px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  /* ---------- Data split table ---------- */
+
+  table.split {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  table.split th, table.split td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.split th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  table.split td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  table.split tr:last-child td { border-bottom: none; }
+
+  /* ---------- Loss branches ---------- */
+
+  .legend {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .dot-fixed { background: var(--fixed); }
+  .dot-adaptive { background: var(--adaptive); }
+
+  .branch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  @media (max-width: 720px) {
+    .branch-grid { grid-template-columns: 1fr; }
+  }
+
+  .branch {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 18px;
+  }
+  .branch-fixed { border-top: 3px solid var(--fixed); background: var(--fixed-bg); }
+  .branch-adaptive { border-top: 3px solid var(--adaptive); background: var(--adaptive-bg); }
+
+  .branch h3 {
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .branch-fixed h3 { color: var(--fixed); }
+  .branch-adaptive h3 { color: var(--adaptive); }
+
+  .branch .sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+  ul.configs { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  ul.configs li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12.5px;
+    padding: 6px 8px;
+    border-radius: 3px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  ul.configs li.best {
+    border-color: var(--fixed);
+    box-shadow: inset 0 0 0 1px var(--fixed-bg-strong);
+  }
+  ul.configs li .w { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  ul.configs li .best-tag {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fixed);
+    margin-left: 6px;
+  }
+
+  ol.steps {
+    list-style: none;
+    counter-reset: step;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  ol.steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 26px;
+    font-size: 12.5px;
+  }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--adaptive-bg-strong);
+    color: var(--adaptive);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  ol.steps li .hp {
+    display: inline-block;
+    font-size: 11px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 0 5px;
+    border-radius: 3px;
+    color: var(--muted);
+  }
+
+  .converge {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    padding-top: 14px;
+    border-top: 1px dashed var(--line-strong);
+  }
+
+  /* ---------- Training loop stage ---------- */
+
+  .kv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 24px;
+  }
+  @media (max-width: 560px) { .kv-grid { grid-template-columns: 1fr; } }
+
+  .kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .kv:last-child, .kv:nth-last-child(2) { border-bottom: none; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace; font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Orchestration stage ---------- */
+
+  .pipeline-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-size: 13px;
+  }
+  .chain-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .chain-link:last-child { border-bottom: none; }
+  .chain-link .arrow-down { color: var(--line-strong); }
+  .chain-link .path {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: var(--surface-2);
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .chain-link .note { color: var(--muted); font-size: 12.5px; }
+
+  /* ---------- Colophon ---------- */
+
+  .colophon {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+  .colophon strong { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <span class="eyebrow">learnable_loss_function_tsf — architecture</span>
+    <h1>Adaptive Loss Weighting for Time&nbsp;Series Forecasting</h1>
+    <p class="thesis">
+      A frozen linear backbone (DLinear) paired with a loss function that is either fixed by hand
+      or predicted per sample by a small MLP. This page traces every tensor from raw CSV
+      to the backward pass.
+    </p>
+    <dl class="meta-row">
+      <div><dt>Backbone</dt><dd>DLinear (backbone-agnostic framework)</dd></div>
+      <div><dt>Datasets</dt><dd>ETTh1 · ETTh2 · ETTm1 · ETTm2</dd></div>
+      <div><dt>Horizon</dt><dd>seq_len 336 → pred_len 96</dd></div>
+      <div><dt>Status</dt><dd class="status-tag">ETTh2 ablation running</dd></div>
+    </dl>
+  </header>
+
+  <div class="schematic">
+
+    <!-- 01 DATA -->
+    <section class="stage">
+      <div class="rail-node"></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="stage-no">01</span>
+          <h2>Data</h2>
+          <span class="file-tag">datasets/ett_dataset.py</span>
+        </div>
+        <p class="desc">
+          <code>ETTDataset</code> reads one CSV, z-score scales on the train split only, and slides
+          a fixed window across the series with stride 1.
+        </p>
+        <div class="flow">
+          <div class="flow-step"><strong>CSV</strong>date + 7 cols</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>StandardScaler</strong>fit on train</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>window</strong><span class="shape">x_enc (336, C)</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>target</strong><span class="shape">y (96, C)</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>batch</strong><span class="shape">(32, T, C)</span></div>
+        </div>
+        <table class="split">
+          <thead><tr><th>split</th><th>ETTh1 / ETTh2 (hourly)</th><th>ETTm1 / ETTm2 (15-min)</th></tr></thead>
+          <tbody>
+            <tr><td>train</td><td class="num">12·30·24 = 8,640</td><td class="num">×4 = 34,560</td></tr>
+            <tr><td>val</td><td class="num">4·30·24 = 2,880</td><td class="num">×4 = 11,520</td></tr>
+            <tr><td>test</td><td class="num">4·30·24 = 2,880</td><td class="num">×4 = 11,520</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 02 BACKBONE -->
+    <section class="stage">
+      <div class="rail-node"></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="stage-no">02</span>
+          <h2>Backbone — DLinear</h2>
+          <span class="file-tag">models/dlinear.py</span>
+        </div>
+        <p class="desc">
+          Kept identical to the original paper. Series decomposition splits the input into a
+          smooth trend and a residual seasonal part; two independent linear layers, applied
+          per channel, map each part from <code>seq_len</code> to <code>pred_len</code>.
+        </p>
+        <div class="flow">
+          <div class="flow-step"><strong>x_enc</strong><span class="shape">(B, 336, C)</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>moving avg</strong>kernel = 25</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>trend</strong>+<br><strong>seasonal</strong>= x − trend</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>2× Linear</strong>336 → 96<br>(per channel)</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><strong>sum</strong><span class="shape">pred (B, 96, C)</span></div>
+        </div>
+        <p class="desc" style="margin-bottom:0;">
+          The backbone is intentionally untouched — every experiment in this project varies
+          only the loss function below it.
+        </p>
+      </div>
+    </section>
+
+    <!-- 03 LOSS -->
+    <section class="stage stage-loss">
+      <div class="rail-node"></div>
+      <div class="card wide">
+        <div class="card-head">
+          <span class="stage-no">03</span>
+          <h2>Loss function — the experiment surface</h2>
+          <span class="file-tag">losses/</span>
+        </div>
+        <p class="desc">
+          Every ablation config swaps this module only. <code>pred</code>, <code>target</code> and
+          <code>x_enc</code> go in; one scalar comes out.
+        </p>
+        <div class="legend">
+          <span><span class="dot dot-fixed"></span>fixed — hand-set weight, no learning</span>
+          <span><span class="dot dot-adaptive"></span>adaptive — weight predicted per sample by an MLP</span>
+        </div>
+
+        <div class="branch-grid">
+          <div class="branch branch-fixed">
+            <h3>FixedWeightLoss</h3>
+            <div class="sub">losses/fixed_loss.py — static Σwᵢ·lossᵢ</div>
+            <ul class="configs">
+              <li><span>mse_only</span><span class="w">mse 1.0</span></li>
+              <li><span>mse_mae_fixed</span><span class="w">.5 / .5</span></li>
+              <li><span>mse_trend_fixed</span><span class="w">.5 / .5</span></li>
+              <li class="best"><span>mse_mae_trend_fixed<span class="best-tag">best · ETTh1</span></span><span class="w">⅓ / ⅓ / ⅓</span></li>
+            </ul>
+          </div>
+
+          <div class="branch branch-adaptive">
+            <h3>AdaptiveLossWeighting</h3>
+            <div class="sub">losses/adaptive_loss.py — per-sample Σwᵢ(x)·lossᵢ</div>
+            <ol class="steps">
+              <li><code>StatisticalFeatureExtractor</code> → 6 features (variance, skew, kurtosis, acf₁, spectral entropy, trend strength), EMA z-scored <span class="hp">momentum .9</span>, then <code>.detach()</code></li>
+              <li><code>WeightGeneratorMLP</code>: 6 → 64 → 3, softmax <span class="hp">T 1.5</span>, floor-rescaled <span class="hp">min .05</span></li>
+              <li>MSE / MAE / Trend computed per sample, each EMA-normalized to scale ≈ 1 <span class="hp">momentum .9</span></li>
+              <li>total = Σ wᵢ·norm_lossᵢ − <span class="hp">entropy_coef .3</span>·H(w)</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="converge">↓ one scalar per config → <code>loss.backward()</code> → stage 04</div>
+      </div>
+    </section>
+
+    <!-- 04 TRAINING LOOP -->
+    <section class="stage">
+      <div class="rail-node"></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="stage-no">04</span>
+          <h2>Training loop</h2>
+          <span class="file-tag">trainer/trainer.py</span>
+        </div>
+        <p class="desc">
+          One optimizer, two learning rates — the weight generator is the more fragile part of
+          the graph, so it moves slower than the backbone.
+        </p>
+        <div class="kv-grid">
+          <div class="kv"><span class="k">optimizer</span><span class="v">Adam, weight_decay 1e-5</span></div>
+          <div class="kv"><span class="k">backbone lr</span><span class="v">1e-4</span></div>
+          <div class="kv"><span class="k">weight generator lr</span><span class="v">1e-4 × 0.5 = 5e-5</span></div>
+          <div class="kv"><span class="k">grad clip</span><span class="v">max_norm 1.0</span></div>
+          <div class="kv"><span class="k">early stopping</span><span class="v">patience 7 on val_mse</span></div>
+          <div class="kv"><span class="k">checkpoint select</span><span class="v">best val_mse</span></div>
+          <div class="kv"><span class="k">final eval</span><span class="v">inverse-transformed test set</span></div>
+          <div class="kv"><span class="k">reported metrics</span><span class="v">MSE · MAE · RMSE · MAPE</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 ORCHESTRATION -->
+    <section class="stage">
+      <div class="rail-node"></div>
+      <div class="card">
+        <div class="card-head">
+          <span class="stage-no">05</span>
+          <h2>Experiment orchestration</h2>
+          <span class="file-tag">configs/ · scripts/ · utils/</span>
+        </div>
+        <p class="desc">Config file in, comparison table out — one seed, five configs, one shared results log.</p>
+        <div class="pipeline-chain">
+          <div class="chain-link"><span class="path">configs/experiments/*.yaml</span><span class="note">→ <code>ExperimentConfig</code>, seed = 42</span></div>
+          <div class="chain-link"><span class="path">experiments/run_experiment.py</span><span class="note">builds data / model / loss → <code>Trainer.train()</code></span></div>
+          <div class="chain-link"><span class="path">scripts/run_ablation[_etth2].sh</span><span class="note">loops 5 configs into one <code>result/ablation_*/</code> folder</span></div>
+          <div class="chain-link"><span class="path">utils/summary_reporter.py</span><span class="note">appends <code>results_log.json</code>, rebuilds <code>summary.html</code></span></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="colophon">
+    <p><strong>Where this stands:</strong> on ETTh1 (pred_len 96), the adaptive path converges to
+    weights close to an equal split (w_mse ≈ .40 / w_mae ≈ .35 / w_trend ≈ .25) and roughly ties
+    the plain equal-weight fixed baseline — MSE 9.165 vs. 9.149 — rather than clearly beating it.
+    No strong per-sample heterogeneity has shown up yet on this series. The ETTh2 ablation
+    (currently running) tests whether a more volatile dataset gives the per-sample weighting
+    something real to react to.</p>
+  </footer>
+
+</div>
+</body>
+</html>

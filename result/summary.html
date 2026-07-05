@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiment Summary</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#f8f9fb; --card:#fff; --border:#e2e8f0;
+    --accent:#4f46e5; --text:#1e293b; --muted:#64748b;
+    --green:#10b981; --red:#ef4444; --yellow:#f59e0b;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+          background:var(--bg); color:var(--text); font-size:14px; }
+  .page { max-width:1200px; margin:0 auto; padding:40px 24px; }
+
+  .header { background:var(--accent); color:#fff; border-radius:12px;
+             padding:28px 32px; margin-bottom:28px; }
+  .header h1 { font-size:22px; font-weight:700; }
+  .header .sub { opacity:.8; font-size:13px; margin-top:4px; }
+
+  .section { background:var(--card); border:1px solid var(--border);
+              border-radius:12px; padding:24px 28px; margin-bottom:24px; }
+  .section h2 { font-size:15px; font-weight:700; color:var(--accent);
+                 margin-bottom:4px; }
+  .subtitle { color:var(--muted); font-size:12px; margin-bottom:18px; }
+
+  /* Table */
+  .tbl-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#f1f5f9; text-align:left; padding:10px 12px;
+        font-weight:600; color:var(--muted); border-bottom:2px solid var(--border); }
+  td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#f8fafc; }
+  .row-best td { background:#f0fdf4 !important; }
+
+  /* Metric cell */
+  .metric { font-weight:700; font-variant-numeric:tabular-nums; }
+  .best-val { color:var(--green); }
+
+  /* Delta badge */
+  .delta { display:inline-block; font-size:11px; font-weight:700;
+            border-radius:999px; padding:1px 8px; }
+  .delta.better { background:#dcfce7; color:#16a34a; }
+  .delta.worse  { background:#fee2e2; color:#dc2626; }
+  .delta.same   { background:#f1f5f9; color:var(--muted); }
+
+  /* Baseline tag */
+  .tag { display:inline-block; font-size:10px; font-weight:700;
+          border-radius:4px; padding:1px 6px; margin-left:6px; }
+  .tag.baseline { background:#e0e7ff; color:#4338ca; }
+  .tag.proposed { background:#dcfce7; color:#15803d; }
+
+  /* Report link */
+  .link { color:var(--accent); text-decoration:none; font-size:12px; }
+  .link:hover { text-decoration:underline; }
+
+  /* Chart */
+  .chart-container { position:relative; height:320px; }
+
+  /* Legend note */
+  .note { font-size:12px; color:var(--muted); margin-top:12px; }
+
+  .footer { text-align:center; color:var(--muted); font-size:12px; margin-top:28px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>Experiment Summary</h1>
+    <div class="sub">Last updated: 2026-07-05 17:18:25 &nbsp;·&nbsp; 51 experiment(s) in log &nbsp;·&nbsp; showing ablation group: <strong>ablation_ettm1_20260705_1711</strong></div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="section">
+    <h2>Results Comparison</h2>
+    <p class="subtitle">
+      Δ columns show difference vs. <strong>mse_only</strong> baseline
+      &nbsp;(green = improvement, red = degradation).
+      
+    </p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Experiment ID</th>
+            <th>Loss Type</th>
+            <th>Pred Len</th>
+            <th>MSE</th>
+            <th>Δ MSE</th>
+            <th>MAE</th>
+            <th>Δ MAE</th>
+            <th>RMSE</th>
+            <th>Report</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+          <td>1</td>
+          <td><strong>dlinear_ettm1_mse_only</strong><span class="tag baseline">baseline</span></td>
+          <td><code>mse_only</code></td>
+          <td>96</td>
+          <td class="metric">7.4729</td>
+          <td><span class="delta same">—</span></td>
+          <td class="metric">1.3955</td>
+          <td><span class="delta same">—</span></td>
+          <td class="metric">2.7337</td>
+          <td><a class="link" href="ablation_ettm1_20260705_1711/dlinear_ettm1_mse_only/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-05 17:12:35</td>
+        </tr>
+<tr>
+          <td>2</td>
+          <td><strong>dlinear_ettm1_mse_mae_fixed</strong></td>
+          <td><code>mse_mae_fixed</code></td>
+          <td>96</td>
+          <td class="metric">7.3240</td>
+          <td><span class="delta better">-1.99%</span></td>
+          <td class="metric">1.3695</td>
+          <td><span class="delta better">-1.87%</span></td>
+          <td class="metric">2.7063</td>
+          <td><a class="link" href="ablation_ettm1_20260705_1711/dlinear_ettm1_mse_mae_fixed/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-05 17:13:39</td>
+        </tr>
+<tr>
+          <td>3</td>
+          <td><strong>dlinear_ettm1_mse_trend_fixed</strong></td>
+          <td><code>mse_trend_fixed</code></td>
+          <td>96</td>
+          <td class="metric">7.4824</td>
+          <td><span class="delta worse">+0.13%</span></td>
+          <td class="metric">1.3983</td>
+          <td><span class="delta worse">+0.20%</span></td>
+          <td class="metric">2.7354</td>
+          <td><a class="link" href="ablation_ettm1_20260705_1711/dlinear_ettm1_mse_trend_fixed/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-05 17:15:09</td>
+        </tr>
+<tr>
+          <td>4</td>
+          <td><strong>dlinear_ettm1_mse_mae_trend_fixed</strong></td>
+          <td><code>mse_mae_trend_fixed</code></td>
+          <td>96</td>
+          <td class="metric">7.3196</td>
+          <td><span class="delta better">-2.05%</span></td>
+          <td class="metric">1.3687</td>
+          <td><span class="delta better">-1.92%</span></td>
+          <td class="metric">2.7055</td>
+          <td><a class="link" href="ablation_ettm1_20260705_1711/dlinear_ettm1_mse_mae_trend_fixed/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-05 17:16:13</td>
+        </tr>
+<tr class="row-best">
+          <td>5</td>
+          <td><strong>dlinear_ettm1_adaptive</strong><span class="tag proposed">proposed</span></td>
+          <td><code>adaptive</code></td>
+          <td>96</td>
+          <td class="metric best-val">7.3142</td>
+          <td><span class="delta better">-2.12%</span></td>
+          <td class="metric best-val">1.3644</td>
+          <td><span class="delta better">-2.23%</span></td>
+          <td class="metric best-val">2.7045</td>
+          <td><a class="link" href="ablation_ettm1_20260705_1711/dlinear_ettm1_adaptive/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-05 17:18:25</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">* Best values per column are highlighted in green.</p>
+  </div>
+
+  <!-- Bar Chart -->
+  <div class="section">
+    <h2>Metric Comparison Chart</h2>
+    <p class="subtitle">MSE and MAE across all experiments</p>
+    <div class="chart-container">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <div class="footer">
+    Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-05 17:18:25
+  </div>
+</div>
+
+<script>
+
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: ["dlinear_ettm1_mse_only", "dlinear_ettm1_mse_mae_fixed", "dlinear_ettm1_mse_trend_fixed", "dlinear_ettm1_mse_mae_trend_fixed", "dlinear_ettm1_adaptive"],
+    datasets: [
+      {
+        label: 'MSE',
+        data: [7.4729, 7.324, 7.4824, 7.3196, 7.3142],
+        backgroundColor: 'rgba(79,70,229,0.75)',
+        borderColor: '#4f46e5',
+        borderWidth: 1,
+        borderRadius: 4,
+      },
+      {
+        label: 'MAE',
+        data: [1.3955, 1.3695, 1.3983, 1.3687, 1.3644],
+        backgroundColor: 'rgba(6,182,212,0.75)',
+        borderColor: '#06b6d4',
+        borderWidth: 1,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { ticks: { maxRotation: 30 } },
+      y: { title: { display: true, text: 'Value (lower is better)' }, beginAtZero: true }
+    }
+  }
+});
+</script>
+</body>
+</html>

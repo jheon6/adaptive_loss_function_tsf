@@ -1,0 +1,9 @@
+exp_id: dlinear_etth1_mse_mae_trend_fixed
+loss_type: mse_mae_trend_fixed
+model_name: DLinear
+data_name: ETTh1
+pred_len: 96
+seq_len: 336
+epochs: 50
+batch_size: 32
+learning_rate: 0.0001
