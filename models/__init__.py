@@ -1,9 +1,9 @@
 from .dlinear import DLinear
-
-# Future: from .patchtst import PatchTST
+from .patchtst import PatchTST
 
 _MODEL_REGISTRY = {
     "DLinear": DLinear,
+    "PatchTST": PatchTST,
 }
 
 

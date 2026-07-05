@@ -1,10 +1,15 @@
 """
-Generic multivariate CSV dataset — for benchmarks distributed as a raw
-comma-separated matrix with no header and no date column (Electricity,
-Traffic; source: laiguokun/multivariate-time-series-data).
+Generic multivariate CSV dataset — for benchmarks that aren't in the ETT
+family. Covers two raw formats:
 
-Unlike ETTDataset, the split is by ratio (0.7 / 0.1 / 0.2) rather than fixed
-month boundaries, following the standard Autoformer/Informer benchmark
+    has_header=False (default): no header, no date column — just a comma-
+        separated matrix (Electricity, Traffic, Exchange; source:
+        laiguokun/multivariate-time-series-data).
+    has_header=True: a normal header row with a leading date/timestamp
+        column to drop (Weather; source: Jena Climate weather station).
+
+Unlike ETTDataset, the split is always by ratio (0.7 / 0.1 / 0.2) rather than
+fixed month boundaries, following the standard Autoformer/Informer benchmark
 convention for these datasets.
 """
 
@@ -37,6 +42,7 @@ class GenericCSVDataset(WindowedTimeSeriesDataset):
         features: str = "M",          # "M" = multivariate, "S" = univariate (last column only)
         target: str = None,
         scale: bool = True,
+        has_header: bool = False,
     ):
         assert split in ("train", "val", "test"), f"Unknown split: {split}"
         assert features in ("M", "S"), f"features must be 'M' or 'S'"
@@ -46,6 +52,7 @@ class GenericCSVDataset(WindowedTimeSeriesDataset):
         self.features = features
         self.target = target
         self.scale = scale
+        self.has_header = has_header
 
         self._load_and_split(root_path, data_name, split)
 
@@ -55,7 +62,11 @@ class GenericCSVDataset(WindowedTimeSeriesDataset):
 
     def _load_and_split(self, root_path: str, data_name: str, split: str):
         csv_path = os.path.join(root_path, f"{data_name}.csv")
-        df = pd.read_csv(csv_path, header=None)
+        if self.has_header:
+            df = pd.read_csv(csv_path)
+            df = df.drop(columns=[df.columns[0]])  # drop the leading date/timestamp column
+        else:
+            df = pd.read_csv(csv_path, header=None)
 
         # Feature selection — no named "OT" column here, so "S" mode
         # defaults to the last column unless a target index/name is given.

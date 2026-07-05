@@ -1,0 +1,9 @@
+exp_id: dlinear_exchange_mse_mae_trend_fixed
+loss_type: mse_mae_trend_fixed
+model_name: DLinear
+data_name: Exchange
+pred_len: 96
+seq_len: 336
+epochs: 50
+batch_size: 32
+learning_rate: 0.0001

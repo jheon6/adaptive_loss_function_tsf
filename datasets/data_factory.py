@@ -10,14 +10,17 @@ from .ett_dataset import ETTDataset
 from .generic_dataset import GenericCSVDataset
 
 
-# Registry: add new datasets here as needed
+# Registry: dataset name -> (dataset class, extra constructor kwargs).
+# Add new datasets here as needed.
 _DATASET_REGISTRY = {
-    "ETTh1": ETTDataset,
-    "ETTh2": ETTDataset,
-    "ETTm1": ETTDataset,
-    "ETTm2": ETTDataset,
-    "Electricity": GenericCSVDataset,
-    "Traffic": GenericCSVDataset,
+    "ETTh1": (ETTDataset, {}),
+    "ETTh2": (ETTDataset, {}),
+    "ETTm1": (ETTDataset, {}),
+    "ETTm2": (ETTDataset, {}),
+    "Electricity": (GenericCSVDataset, {}),
+    "Traffic": (GenericCSVDataset, {}),
+    "Exchange": (GenericCSVDataset, {}),
+    "Weather": (GenericCSVDataset, {"has_header": True}),
 }
 
 
@@ -39,7 +42,7 @@ def build_dataloader(config, split: str) -> DataLoader:
         f"Available: {list(_DATASET_REGISTRY.keys())}"
     )
 
-    dataset_cls = _DATASET_REGISTRY[data_name]
+    dataset_cls, extra_kwargs = _DATASET_REGISTRY[data_name]
     dataset = dataset_cls(
         root_path=config.data_path,
         data_name=data_name,
@@ -49,6 +52,7 @@ def build_dataloader(config, split: str) -> DataLoader:
         features=config.features,
         target=config.target,
         scale=True,
+        **extra_kwargs,
     )
 
     shuffle = split == "train"

@@ -1,0 +1,9 @@
+exp_id: dlinear_weather_mse_only
+loss_type: mse_only
+model_name: DLinear
+data_name: Weather
+pred_len: 96
+seq_len: 336
+epochs: 50
+batch_size: 32
+learning_rate: 0.0001

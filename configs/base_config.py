@@ -42,6 +42,15 @@ class ExperimentConfig:
     model_name: str = "DLinear"
     moving_avg: int = 25              # DLinear decomposition kernel size
 
+    # PatchTST-only hyperparameters
+    patch_len: int = 16
+    patch_stride: int = 8
+    d_model: int = 128
+    n_heads: int = 8
+    e_layers: int = 2
+    d_ff: int = 256
+    patchtst_dropout: float = 0.1
+
     # ------------------------------------------------------------------ #
     # Loss
     # ------------------------------------------------------------------ #
