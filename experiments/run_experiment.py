@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument("--loss_type",     type=str,   default=None)
     parser.add_argument("--device",        type=str,   default=None)
     parser.add_argument("--save_dir",      type=str,   default=None)
+    parser.add_argument("--seed",          type=int,   default=None)
 
     # Ablation group: when set, all reports go into this directory
     # with exp_id as subfolder name instead of auto-incremented resultN
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 
     config = ExperimentConfig.from_yaml(args.config)
     for key in ["exp_id", "pred_len", "seq_len", "epochs",
-                "batch_size", "learning_rate", "loss_type", "device", "save_dir"]:
+                "batch_size", "learning_rate", "loss_type", "device", "save_dir", "seed"]:
         val = getattr(args, key, None)
         if val is not None:
             setattr(config, key, val)

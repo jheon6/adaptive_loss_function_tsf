@@ -42,11 +42,9 @@ def build_loss(config):
             num_stat_features=getattr(config, "num_stat_features", 6),
             hidden_dim=getattr(config, "weight_gen_hidden_dim", 64),
             dropout=getattr(config, "weight_gen_dropout", 0.1),
-            temperature=getattr(config, "weight_gen_temperature", 1.0),
-            entropy_coef=getattr(config, "entropy_coef", 0.1),
+            max_log_var=getattr(config, "weight_gen_max_log_var", 4.0),
             loss_norm_momentum=getattr(config, "loss_norm_momentum", 0.9),
             feature_norm_momentum=getattr(config, "feature_norm_momentum", 0.9),
-            min_weight=getattr(config, "weight_gen_min_weight", 0.05),
         )
 
     else:

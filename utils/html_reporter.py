@@ -256,7 +256,7 @@ def _config_table_rows(config_dict: dict) -> str:
         "seq_len", "pred_len", "num_features",
         "epochs", "batch_size", "learning_rate", "weight_decay", "patience",
         "moving_avg", "weight_gen_hidden_dim", "weight_gen_dropout",
-        "weight_gen_temperature", "num_stat_features", "device",
+        "weight_gen_max_log_var", "num_stat_features", "device",
     ]
     skip = {"save_dir", "data_path", "features", "target"}
     rows = []

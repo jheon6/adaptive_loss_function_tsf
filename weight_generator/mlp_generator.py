@@ -1,5 +1,5 @@
 """
-WeightGeneratorMLP — learns to predict per-sample loss weights.
+WeightGeneratorMLP — predicts per-sample loss uncertainty (log-variance).
 
 Architecture:
     features (B, num_stat_features)
@@ -7,13 +7,29 @@ Architecture:
     → LayerNorm + ReLU
     → Dropout
     → Linear(hidden_dim, num_losses)
-    → Softmax(dim=-1)
+    → clamp to [-max_log_var, max_log_var]
 
-Output: weights (B, num_losses) where weights.sum(dim=-1) == 1.
+Output: log_var (B, num_losses), UNCONSTRAINED (no softmax).
 
-The MLP is trained end-to-end with the backbone via the total loss gradient.
-LayerNorm is added before the activation to stabilize training when statistical
-features have very different scales (e.g. variance vs. normalized entropy).
+Why not softmax:
+    A softmax gate is trained through the same objective it modulates, so its
+    gradient w.r.t. each weight is exactly that component's (normalized) loss.
+    The MLP can lower the reported total loss for free by pushing weight
+    toward zero on whatever component is currently hardest for a sample —
+    it never has to pay for hiding a hard target, so `min_weight` floors and
+    entropy regularization were needed as after-the-fact patches.
+
+    Instead we predict a per-sample log-variance s_i(x) and combine losses as
+    homoscedastic uncertainty weighting (Kendall et al., 2018), applied
+    per-sample instead of as a single global scalar per task:
+
+        L = sum_i [ 0.5 * exp(-s_i) * loss_i  +  0.5 * s_i ]
+
+    Driving s_i -> +inf (i.e. "ignore this component") still lowers the first
+    term but the `+0.5 * s_i` term grows without bound, so it is never free.
+    Solving dL/ds_i = 0 for fixed loss_i gives s_i* = log(loss_i): the
+    optimum log-variance is the one that actually reflects how hard/noisy
+    that component is for that sample, not the one that best hides it.
 """
 
 import torch
@@ -22,38 +38,30 @@ import torch.nn as nn
 
 class WeightGeneratorMLP(nn.Module):
     """
-    Lightweight MLP that maps statistical features to loss weights.
+    Lightweight MLP that maps statistical features to per-loss log-variances.
 
     Args:
         num_stat_features : dimensionality of the input feature vector (default: 6)
-        num_losses        : number of loss components to weight (default: 4)
+        num_losses        : number of loss components to weight (default: 3)
         hidden_dim        : width of the single hidden layer (default: 64)
         dropout           : dropout probability for regularization (default: 0.1)
-        temperature       : softmax temperature — lower → sharper distribution (default: 1.0)
-        min_weight        : hard floor applied to every component after softmax,
-                             so no component can ever be driven fully to zero
-                             (entropy regularization alone only discourages
-                             collapse, it doesn't prevent it). Must satisfy
-                             min_weight * num_losses < 1. (default: 0.05)
+        max_log_var       : clamp range for the predicted log-variance, so
+                             exp(-log_var) can't explode/vanish numerically
+                             (default: 4.0 → precision ranges over roughly
+                             [exp(-4), exp(4)] ≈ [0.018, 54.6])
     """
 
     def __init__(
         self,
         num_stat_features: int = 6,
-        num_losses: int = 4,
+        num_losses: int = 3,
         hidden_dim: int = 64,
         dropout: float = 0.1,
-        temperature: float = 1.0,
-        min_weight: float = 0.05,
+        max_log_var: float = 4.0,
     ):
         super().__init__()
-        assert min_weight * num_losses < 1.0, (
-            f"min_weight={min_weight} with num_losses={num_losses} leaves no room "
-            f"for adaptivity (min_weight * num_losses must be < 1)."
-        )
-        self.temperature = temperature
         self.num_losses = num_losses
-        self.min_weight = min_weight
+        self.max_log_var = max_log_var
 
         self.net = nn.Sequential(
             nn.Linear(num_stat_features, hidden_dim),
@@ -66,13 +74,12 @@ class WeightGeneratorMLP(nn.Module):
         self._init_weights()
 
     def _init_weights(self):
-        """Initialize the final linear layer near zero so that the initial
-        weight distribution starts close to uniform (= equal weighting)."""
+        """Initialize the final linear layer to output zero, so every sample
+        starts with log_var = 0 (i.e. precision = 1, equal treatment)."""
         for m in self.net.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_uniform_(m.weight)
                 nn.init.zeros_(m.bias)
-        # Bias of the last layer: set to 0 so softmax starts uniform
         last_linear = [m for m in self.net.modules() if isinstance(m, nn.Linear)][-1]
         nn.init.zeros_(last_linear.weight)
         nn.init.zeros_(last_linear.bias)
@@ -83,14 +90,8 @@ class WeightGeneratorMLP(nn.Module):
             features : (B, num_stat_features)
 
         Returns:
-            weights  : (B, num_losses)  — sums to 1 along dim=-1
+            log_var  : (B, num_losses) — unconstrained, clamped to
+                       [-max_log_var, max_log_var]
         """
-        logits = self.net(features)                        # (B, num_losses)
-        weights = torch.softmax(logits / self.temperature, dim=-1)
-
-        # Hard floor: rescale the softmax output into [min_weight, 1] so every
-        # component keeps at least min_weight, while still summing to 1.
-        if self.min_weight > 0.0:
-            weights = weights * (1.0 - self.num_losses * self.min_weight) + self.min_weight
-
-        return weights
+        log_var = self.net(features)  # (B, num_losses)
+        return log_var.clamp(min=-self.max_log_var, max=self.max_log_var)

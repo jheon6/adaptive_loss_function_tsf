@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiment Report — dlinear_etth2_adaptive_seed45</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:      #f8f9fb;
+    --card:    #ffffff;
+    --border:  #e2e8f0;
+    --accent:  #4f46e5;
+    --accent2: #06b6d4;
+    --text:    #1e293b;
+    --muted:   #64748b;
+    --green:   #10b981;
+    --orange:  #f59e0b;
+    --red:     #ef4444;
+    --purple:  #8b5cf6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6;
+  }
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Header */
+  .header { background: var(--accent); color: #fff; border-radius: 12px;
+             padding: 32px 36px; margin-bottom: 32px; }
+  .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .header .meta { opacity: 0.85; font-size: 13px; }
+  .badge { display: inline-block; background: rgba(255,255,255,0.2);
+            border-radius: 999px; padding: 2px 12px; font-size: 12px;
+            font-weight: 600; margin-right: 8px; margin-top: 8px; }
+
+  /* Section */
+  .section { background: var(--card); border: 1px solid var(--border);
+              border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+  .section h2 { font-size: 16px; font-weight: 700; color: var(--accent);
+                 margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 12px; margin-bottom: 20px; }
+
+  /* Config table */
+  .config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                  gap: 12px; }
+  .config-item { background: var(--bg); border-radius: 8px; padding: 12px 14px; }
+  .config-key { font-size: 11px; color: var(--muted); text-transform: uppercase;
+                 letter-spacing: 0.05em; margin-bottom: 2px; }
+  .config-val { font-weight: 600; font-size: 14px; color: var(--text); }
+
+  /* Metric cards */
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .metric-card { border-radius: 10px; padding: 20px 18px; text-align: center; color: #fff; }
+  .metric-card .label { font-size: 12px; font-weight: 600; opacity: 0.85;
+                          text-transform: uppercase; letter-spacing: 0.06em; }
+  .metric-card .value { font-size: 28px; font-weight: 800; margin-top: 6px; }
+  .metric-card.mse   { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .metric-card.mae   { background: linear-gradient(135deg, #06b6d4, #0284c7); }
+  .metric-card.rmse  { background: linear-gradient(135deg, #10b981, #059669); }
+  .metric-card.mape  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+  /* Chart */
+  .chart-container { position: relative; height: 300px; }
+
+  /* Footer */
+  .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 32px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Experiment Report</h1>
+    <div class="meta">2026-07-06  19:56:24</div>
+    <div style="margin-top:10px;">
+      <span class="badge">dlinear_etth2_adaptive_seed45</span>
+      <span class="badge">DLinear</span>
+      <span class="badge">ETTh2</span>
+      <span class="badge">loss: adaptive</span>
+      <span class="badge">pred_len: 96</span>
+    </div>
+  </div>
+
+  <!-- Experiment Configuration -->
+  <div class="section">
+    <h2>Experiment Configuration</h2>
+    <p class="subtitle">Full hyperparameter settings for this run</p>
+    <div class="config-grid">
+      <div class="config-item"><div class="config-key">exp id</div><div class="config-val">dlinear_etth2_adaptive_seed45</div></div>
+<div class="config-item"><div class="config-key">model name</div><div class="config-val">DLinear</div></div>
+<div class="config-item"><div class="config-key">data name</div><div class="config-val">ETTh2</div></div>
+<div class="config-item"><div class="config-key">loss type</div><div class="config-val">adaptive</div></div>
+<div class="config-item"><div class="config-key">seq len</div><div class="config-val">336</div></div>
+<div class="config-item"><div class="config-key">pred len</div><div class="config-val">96</div></div>
+<div class="config-item"><div class="config-key">num features</div><div class="config-val">7</div></div>
+<div class="config-item"><div class="config-key">epochs</div><div class="config-val">50</div></div>
+<div class="config-item"><div class="config-key">batch size</div><div class="config-val">32</div></div>
+<div class="config-item"><div class="config-key">learning rate</div><div class="config-val">0.0001</div></div>
+<div class="config-item"><div class="config-key">weight decay</div><div class="config-val">1e-05</div></div>
+<div class="config-item"><div class="config-key">patience</div><div class="config-val">7</div></div>
+<div class="config-item"><div class="config-key">moving avg</div><div class="config-val">25</div></div>
+<div class="config-item"><div class="config-key">weight gen hidden dim</div><div class="config-val">64</div></div>
+<div class="config-item"><div class="config-key">weight gen dropout</div><div class="config-val">0.1</div></div>
+<div class="config-item"><div class="config-key">weight gen max log var</div><div class="config-val">4.0</div></div>
+<div class="config-item"><div class="config-key">num stat features</div><div class="config-val">6</div></div>
+<div class="config-item"><div class="config-key">device</div><div class="config-val">cpu</div></div>
+    </div>
+  </div>
+
+  <!-- Test Metrics -->
+  <div class="section">
+    <h2>Test Results</h2>
+    <p class="subtitle">Evaluated on the held-out test set using the best validation checkpoint</p>
+    <div class="metric-grid">
+      <div class="metric-card mse"><div class="label">MSE</div><div class="value">14.5726</div></div>
+<div class="metric-card mae"><div class="label">MAE</div><div class="value">2.3653</div></div>
+<div class="metric-card rmse"><div class="label">RMSE</div><div class="value">3.8174</div></div>
+    </div>
+  </div>
+
+  <!-- Training Loss Curve -->
+  <div class="section">
+    <h2>Training Curve</h2>
+    <p class="subtitle">Train and validation loss per epoch</p>
+    <div class="chart-container">
+      <canvas id="lossChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Adaptive Weight Evolution (only for adaptive loss) -->
+  
+        <div class="section">
+            <h2>Adaptive Weight Evolution</h2>
+            <p class="subtitle">Average loss weights predicted by WeightGeneratorMLP per epoch</p>
+            <div class="chart-container">
+                <canvas id="weightChart"></canvas>
+            </div>
+        </div>
+    
+
+  <div class="footer">
+    Generated by Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-06  19:56:24
+  </div>
+</div>
+
+<script>
+
+const lossCtx = document.getElementById('lossChart').getContext('2d');
+new Chart(lossCtx, {
+  type: 'line',
+  data: {
+    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+    datasets: [
+      {
+        label: 'Train Loss',
+        data: [1.369062, 1.28509, 1.20014, 1.155905, 1.109948, 1.075526, 1.047096, 1.029761, 1.004871, 0.983478, 0.965612, 0.96004, 0.948957, 0.934058, 0.919279, 0.914586, 0.913734, 0.914536, 0.904151, 0.885604, 0.891196, 0.892509, 0.882161, 0.880215, 0.873041, 0.874013, 0.868055, 0.867871, 0.869142, 0.864555, 0.86391, 0.854972, 0.861474, 0.861933, 0.853066, 0.851761, 0.850297, 0.855525, 0.839952, 0.840925, 0.849256, 0.837807, 0.848713, 0.835071, 0.834879, 0.832249, 0.833576, 0.837889, 0.830915, 0.827214],
+        borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true,
+      },
+      {
+        label: 'Val Loss',
+        data: [1.068633, 0.962979, 1.08008, 0.960647, 0.981545, 1.008499, 1.077016, 0.952303, 0.95234, 1.019053, 1.107369, 0.951502, 0.873872, 0.854079, 1.045436, 1.105492, 1.001412, 0.782247, 0.726569, 0.927794, 0.935987, 0.861677, 0.83921, 0.81347, 0.892793, 0.908663, 0.967114, 1.030667, 0.87447, 0.902967, 0.836249, 0.924622, 0.925523, 0.813038, 0.806849, 0.888461, 0.823147, 0.71191, 0.746193, 0.799394, 0.75819, 0.821684, 0.686478, 0.739325, 0.838647, 0.900264, 0.894722, 0.819362, 0.858734, 0.862258],
+        borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { title: { display: true, text: 'Epoch' } },
+      y: { title: { display: true, text: 'Loss' } }
+    }
+  }
+});
+
+const weightCtx = document.getElementById('weightChart').getContext('2d');
+new Chart(weightCtx, {
+  type: 'line',
+  data: {
+    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+    datasets: [{
+        label: 'MSE weight',
+        data: [0.34, 0.3519, 0.3549, 0.3547, 0.3505, 0.3434, 0.3385, 0.3304, 0.3208, 0.3207, 0.3109, 0.3208, 0.3132, 0.3065, 0.306, 0.3009, 0.308, 0.3109, 0.3121, 0.3086, 0.3044, 0.3107, 0.3162, 0.3147, 0.3163, 0.3075, 0.3074, 0.3169, 0.319, 0.3151, 0.3199, 0.316, 0.3085, 0.3118, 0.3131, 0.3147, 0.3148, 0.3126, 0.3137, 0.3194, 0.3168, 0.3238, 0.3186, 0.3178, 0.3189, 0.3107, 0.3205, 0.3127, 0.3152, 0.3154],
+        borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false,
+      }, {
+        label: 'MAE weight',
+        data: [0.3206, 0.2998, 0.28, 0.2643, 0.2528, 0.2499, 0.2408, 0.2382, 0.2408, 0.2356, 0.2429, 0.2271, 0.2337, 0.2347, 0.2321, 0.2333, 0.2296, 0.2339, 0.2285, 0.2269, 0.2308, 0.2337, 0.2274, 0.2196, 0.2286, 0.2358, 0.2291, 0.2251, 0.2246, 0.228, 0.23, 0.2227, 0.2281, 0.2329, 0.2283, 0.2348, 0.235, 0.2232, 0.2336, 0.2271, 0.2429, 0.2257, 0.2279, 0.2314, 0.2333, 0.2412, 0.2309, 0.2369, 0.2307, 0.225],
+        borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false,
+      }, {
+        label: 'Trend weight',
+        data: [0.3394, 0.3483, 0.3651, 0.381, 0.3967, 0.4067, 0.4207, 0.4314, 0.4385, 0.4437, 0.4463, 0.4521, 0.453, 0.4587, 0.4619, 0.4658, 0.4624, 0.4552, 0.4594, 0.4645, 0.4649, 0.4556, 0.4565, 0.4657, 0.4551, 0.4566, 0.4635, 0.458, 0.4565, 0.4569, 0.4501, 0.4613, 0.4635, 0.4554, 0.4586, 0.4505, 0.4502, 0.4643, 0.4527, 0.4535, 0.4403, 0.4505, 0.4536, 0.4508, 0.4478, 0.4481, 0.4486, 0.4505, 0.4541, 0.4597],
+        borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false,
+      }, {
+        label: 'Frequency weight',
+        data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)',
+        borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false,
+      }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { title: { display: true, text: 'Epoch' } },
+      y: {
+        title: { display: true, text: 'Weight' },
+        min: 0, max: 1,
+        ticks: { callback: v => v.toFixed(2) }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

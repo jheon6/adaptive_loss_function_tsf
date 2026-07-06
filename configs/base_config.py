@@ -59,10 +59,8 @@ class ExperimentConfig:
     num_stat_features: int = 6
     weight_gen_hidden_dim: int = 64
     weight_gen_dropout: float = 0.1
-    weight_gen_temperature: float = 1.5
-    weight_gen_min_weight: float = 0.05  # hard floor per component after softmax
+    weight_gen_max_log_var: float = 4.0  # clamp range for predicted log-variance
     weight_gen_lr_scale: float = 0.5     # weight generator LR = learning_rate * this scale
-    entropy_coef: float = 0.3       # entropy regularization for weight distribution
     loss_norm_momentum: float = 0.9 # EMA momentum for per-loss scale normalization
     feature_norm_momentum: float = 0.9   # EMA momentum for statistical feature normalization
 

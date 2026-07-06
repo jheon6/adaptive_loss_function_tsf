@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     config = ExperimentConfig.from_yaml(args.config)
     for key in ["exp_id", "pred_len", "seq_len", "epochs",
-                "batch_size", "learning_rate", "loss_type", "device", "save_dir"]:
+                "batch_size", "learning_rate", "loss_type", "device", "save_dir", "seed"]:
         val = getattr(args, key, None)
         if val is not None:
             setattr(config, key, val)

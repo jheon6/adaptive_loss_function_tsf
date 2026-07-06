@@ -1,11 +1,12 @@
 """
 Statistical Feature Extractor for Adaptive Loss Weighting.
 
-Computes per-sample statistical descriptors from the encoder input x_enc.
-All operations are implemented using PyTorch so that gradients flow through
-the feature vector back to the WeightGeneratorMLP during training.
+Computes per-(sample, channel) statistical descriptors from the encoder
+input x_enc. All operations are implemented using PyTorch so that gradients
+flow through the feature vector back to the WeightGeneratorMLP during
+training.
 
-Features (6 total, computed per sample by averaging across channels):
+Features (6 total, computed per sample per channel):
     1. Variance          — spread of the signal
     2. Skewness          — asymmetry of the amplitude distribution
     3. Kurtosis          — tail heaviness of the amplitude distribution
@@ -13,7 +14,7 @@ Features (6 total, computed per sample by averaging across channels):
     5. Spectral Entropy  — concentration of energy in frequency domain
     6. Trend Strength    — ratio of variance explained by a linear trend
 
-Output shape: (B, 6)
+Output shape: (B, C, 6)
 """
 
 import torch
@@ -25,10 +26,12 @@ class StatisticalFeatureExtractor(nn.Module):
     Differentiable extractor of statistical time-series features.
 
     Input : x_enc  (B, T, C)
-    Output: features (B, num_features=6)
+    Output: features (B, C, num_features=6)
 
-    Features are averaged across the C channel dimension so that
-    the output is independent of the number of variates.
+    Kept per-channel (not averaged across C): in a multivariate window, one
+    channel can be smooth/trending while another is noisy at the same
+    timestep, and averaging across channels collapses exactly that
+    heterogeneity before the gate ever sees it.
 
     Raw features have very different scales (variance and kurtosis are
     unbounded, acf/spectral_entropy/trend_strength are bounded in [-1, 1]
@@ -60,9 +63,15 @@ class StatisticalFeatureExtractor(nn.Module):
         self.register_buffer("running_std", torch.ones(self.NUM_FEATURES))
 
     def _update_running_stats(self, features: torch.Tensor):
-        """Update EMA mean/std with the current batch's stats (detached)."""
-        batch_mean = features.mean(dim=0).detach()
-        batch_std = features.std(dim=0, unbiased=False).detach()
+        """
+        Update EMA mean/std with the current batch's stats (detached).
+        features: (B, C, num_features) — reduce over both batch and channel
+        so running_mean/std stay per-feature-type (shape (num_features,)),
+        not per-channel-position (channel identity isn't meaningful to
+        normalize against; it's just "which variate", not an ordered axis).
+        """
+        batch_mean = features.mean(dim=(0, 1)).detach()
+        batch_std = features.std(dim=(0, 1), unbiased=False).detach()
         self.running_mean = self.norm_momentum * self.running_mean + (1.0 - self.norm_momentum) * batch_mean
         self.running_std = self.norm_momentum * self.running_std + (1.0 - self.norm_momentum) * batch_std
 
@@ -174,7 +183,13 @@ class StatisticalFeatureExtractor(nn.Module):
             x_enc : (B, T, C)
 
         Returns:
-            features : (B, 6)  — one scalar per feature, averaged across channels
+            features : (B, C, 6) — per-channel, NOT averaged across channels.
+                       Averaging across channels was discarding exactly the
+                       cross-channel heterogeneity a per-channel gate needs
+                       (e.g. a noisy channel vs. a smooth trending channel in
+                       the same multivariate window look identical once
+                       averaged). Downstream (WeightGeneratorMLP) operates on
+                       the last dim only, so it broadcasts over (B, C) as-is.
         """
         feats = [
             self._variance(x_enc),          # (B, C)
@@ -185,10 +200,7 @@ class StatisticalFeatureExtractor(nn.Module):
             self._trend_strength(x_enc),     # (B, C)
         ]
 
-        # Average each feature across channels → (B, 1) each
-        feats_mean = [f.mean(dim=1, keepdim=True) for f in feats]
-
-        features = torch.cat(feats_mean, dim=1)  # (B, 6)
+        features = torch.stack(feats, dim=2)  # (B, C, 6)
 
         if self.training:
             self._update_running_stats(features)
