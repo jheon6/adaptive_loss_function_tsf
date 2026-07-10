@@ -65,6 +65,12 @@ class ExperimentConfig:
     feature_norm_momentum: float = 0.9   # EMA momentum for statistical feature normalization
 
     # ------------------------------------------------------------------ #
+    # Bilevel (meta-learn the weight generator against val loss)
+    # ------------------------------------------------------------------ #
+    bilevel: bool = False              # if True, use BilevelTrainer instead of Trainer
+    bilevel_inner_lr: Optional[float] = None  # virtual backbone step size; None -> learning_rate
+
+    # ------------------------------------------------------------------ #
     # Training
     # ------------------------------------------------------------------ #
     epochs: int = 50

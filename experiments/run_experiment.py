@@ -21,7 +21,7 @@ from configs.base_config import ExperimentConfig
 from datasets.data_factory import build_dataloader
 from models import build_model
 from losses import build_loss
-from trainer import Trainer
+from trainer import Trainer, BilevelTrainer
 from utils.logger import ExperimentLogger
 from utils.html_reporter import generate_report
 from utils.summary_reporter import append_result
@@ -72,7 +72,8 @@ def run(config: ExperimentConfig, result_dir: str = "result"):
     backbone = build_model(config)
     loss_fn  = build_loss(config)
 
-    trainer = Trainer(
+    trainer_cls = BilevelTrainer if getattr(config, "bilevel", False) else Trainer
+    trainer = trainer_cls(
         backbone=backbone,
         loss_fn=loss_fn,
         config=config,
