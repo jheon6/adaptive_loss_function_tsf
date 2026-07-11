@@ -2953,5 +2953,50 @@
     "mae": 0.01219550333917141,
     "rmse": 0.028412601735928435,
     "report": "result/ablation_traffic_20260711_1734/dlinear_traffic_adaptive/report.html"
+  },
+  {
+    "timestamp": "2026-07-11 01:47:10",
+    "exp_id": "dlinear_etth1_bilevel",
+    "model": "DLinear",
+    "dataset": "ETTh1",
+    "loss_type": "adaptive",
+    "pred_len": 96,
+    "seq_len": 336,
+    "epochs": 3,
+    "lr": 0.0001,
+    "mse": 10.778264045715332,
+    "mae": 1.8502099514007568,
+    "rmse": 3.283026659306216,
+    "report": "result/bilevel_smoke_test\\dlinear_etth1_bilevel\\report.html"
+  },
+  {
+    "timestamp": "2026-07-11 01:49:52",
+    "exp_id": "dlinear_etth1_bilevel",
+    "model": "DLinear",
+    "dataset": "ETTh1",
+    "loss_type": "adaptive",
+    "pred_len": 96,
+    "seq_len": 336,
+    "epochs": 20,
+    "lr": 0.0001,
+    "mse": 9.278966903686523,
+    "mae": 1.638024091720581,
+    "rmse": 3.0461396723864325,
+    "report": "result/bilevel_smoke_test\\dlinear_etth1_bilevel\\report.html"
+  },
+  {
+    "timestamp": "2026-07-11 01:51:23",
+    "exp_id": "dlinear_etth1_adaptive",
+    "model": "DLinear",
+    "dataset": "ETTh1",
+    "loss_type": "adaptive",
+    "pred_len": 96,
+    "seq_len": 336,
+    "epochs": 20,
+    "lr": 0.0001,
+    "mse": 9.229284286499023,
+    "mae": 1.632148265838623,
+    "rmse": 3.0379737139249614,
+    "report": "result/bilevel_smoke_test\\dlinear_etth1_adaptive\\report.html"
   }
 ]

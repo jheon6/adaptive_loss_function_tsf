@@ -72,7 +72,7 @@
 
   <div class="header">
     <h1>Experiment Summary</h1>
-    <div class="sub">Last updated: 2026-07-11 21:18:19 &nbsp;·&nbsp; 197 experiment(s) in log &nbsp;·&nbsp; showing ablation group: <strong>ablation_traffic_20260711_1734</strong></div>
+    <div class="sub">Last updated: 2026-07-12 01:30:36 &nbsp;·&nbsp; 200 experiment(s) in log &nbsp;·&nbsp; showing baseline + latest</div>
   </div>
 
   <!-- Comparison Table -->
@@ -101,70 +101,31 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr class="row-best">
           <td>1</td>
           <td><strong>dlinear_traffic_mse_only</strong><span class="tag baseline">baseline</span></td>
           <td><code>mse_only</code></td>
           <td>96</td>
-          <td class="metric">0.0008</td>
+          <td class="metric best-val">0.0008</td>
           <td><span class="delta same">—</span></td>
-          <td class="metric">0.0127</td>
+          <td class="metric best-val">0.0127</td>
           <td><span class="delta same">—</span></td>
-          <td class="metric">0.0282</td>
-          <td><a class="link" href="ablation_traffic_20260711_1734/dlinear_traffic_mse_only/report.html" target="_blank">open ↗</a></td>
+          <td class="metric best-val">0.0282</td>
+          <td><a class="link" href="ablation_traffic_20260711_1734\dlinear_traffic_mse_only\report.html" target="_blank">open ↗</a></td>
           <td style="color:var(--muted);font-size:12px;">2026-07-11 18:03:29</td>
         </tr>
 <tr>
           <td>2</td>
-          <td><strong>dlinear_traffic_mse_mae_fixed</strong></td>
-          <td><code>mse_mae_fixed</code></td>
-          <td>96</td>
-          <td class="metric">0.0008</td>
-          <td><span class="delta worse">+0.91%</span></td>
-          <td class="metric">0.0122</td>
-          <td><span class="delta better">-3.66%</span></td>
-          <td class="metric">0.0283</td>
-          <td><a class="link" href="ablation_traffic_20260711_1734/dlinear_traffic_mse_mae_fixed/report.html" target="_blank">open ↗</a></td>
-          <td style="color:var(--muted);font-size:12px;">2026-07-11 18:27:10</td>
-        </tr>
-<tr class="row-best">
-          <td>3</td>
-          <td><strong>dlinear_traffic_mse_trend_fixed</strong></td>
-          <td><code>mse_trend_fixed</code></td>
-          <td>96</td>
-          <td class="metric best-val">0.0008</td>
-          <td><span class="delta same">-0.01%</span></td>
-          <td class="metric">0.0127</td>
-          <td><span class="delta better">-0.04%</span></td>
-          <td class="metric best-val">0.0282</td>
-          <td><a class="link" href="ablation_traffic_20260711_1734/dlinear_traffic_mse_trend_fixed/report.html" target="_blank">open ↗</a></td>
-          <td style="color:var(--muted);font-size:12px;">2026-07-11 19:02:14</td>
-        </tr>
-<tr>
-          <td>4</td>
-          <td><strong>dlinear_traffic_mse_mae_trend_fixed</strong></td>
-          <td><code>mse_mae_trend_fixed</code></td>
-          <td>96</td>
-          <td class="metric">0.0008</td>
-          <td><span class="delta worse">+0.60%</span></td>
-          <td class="metric">0.0123</td>
-          <td><span class="delta better">-3.38%</span></td>
-          <td class="metric">0.0283</td>
-          <td><a class="link" href="ablation_traffic_20260711_1734/dlinear_traffic_mse_mae_trend_fixed/report.html" target="_blank">open ↗</a></td>
-          <td style="color:var(--muted);font-size:12px;">2026-07-11 19:29:25</td>
-        </tr>
-<tr>
-          <td>5</td>
-          <td><strong>dlinear_traffic_adaptive</strong><span class="tag proposed">proposed</span></td>
+          <td><strong>dlinear_etth1_adaptive</strong><span class="tag proposed">proposed</span></td>
           <td><code>adaptive</code></td>
           <td>96</td>
-          <td class="metric">0.0008</td>
-          <td><span class="delta worse">+1.66%</span></td>
-          <td class="metric best-val">0.0122</td>
-          <td><span class="delta better">-3.85%</span></td>
-          <td class="metric">0.0284</td>
-          <td><a class="link" href="ablation_traffic_20260711_1734/dlinear_traffic_adaptive/report.html" target="_blank">open ↗</a></td>
-          <td style="color:var(--muted);font-size:12px;">2026-07-11 21:18:19</td>
+          <td class="metric">9.2293</td>
+          <td><span class="delta worse">+1162195.05%</span></td>
+          <td class="metric">1.6321</td>
+          <td><span class="delta worse">+12767.47%</span></td>
+          <td class="metric">3.0380</td>
+          <td><a class="link" href="bilevel_smoke_test\dlinear_etth1_adaptive\report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-11 01:51:23</td>
         </tr>
         </tbody>
       </table>
@@ -182,7 +143,7 @@
   </div>
 
   <div class="footer">
-    Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-11 21:18:19
+    Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-12 01:30:36
   </div>
 </div>
 
@@ -192,11 +153,11 @@ const barCtx = document.getElementById('barChart').getContext('2d');
 new Chart(barCtx, {
   type: 'bar',
   data: {
-    labels: ["dlinear_traffic_mse_only", "dlinear_traffic_mse_mae_fixed", "dlinear_traffic_mse_trend_fixed", "dlinear_traffic_mse_mae_trend_fixed", "dlinear_traffic_adaptive"],
+    labels: ["dlinear_traffic_mse_only", "dlinear_etth1_adaptive"],
     datasets: [
       {
         label: 'MSE',
-        data: [0.0008, 0.0008, 0.0008, 0.0008, 0.0008],
+        data: [0.0008, 9.2293],
         backgroundColor: 'rgba(79,70,229,0.75)',
         borderColor: '#4f46e5',
         borderWidth: 1,
@@ -204,7 +165,7 @@ new Chart(barCtx, {
       },
       {
         label: 'MAE',
-        data: [0.0127, 0.0122, 0.0127, 0.0123, 0.0122],
+        data: [0.0127, 1.6321],
         backgroundColor: 'rgba(6,182,212,0.75)',
         borderColor: '#06b6d4',
         borderWidth: 1,
