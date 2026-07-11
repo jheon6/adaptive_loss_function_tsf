@@ -20,7 +20,7 @@ _DATASET_REGISTRY = {
     "Electricity": (GenericCSVDataset, {}),
     "Traffic": (GenericCSVDataset, {}),
     "Exchange": (GenericCSVDataset, {}),
-    "Weather": (GenericCSVDataset, {"has_header": True}),
+    "Weather": (GenericCSVDataset, {}),
 }
 
 
