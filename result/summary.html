@@ -72,7 +72,7 @@
 
   <div class="header">
     <h1>Experiment Summary</h1>
-    <div class="sub">Last updated: 2026-07-12 01:30:36 &nbsp;·&nbsp; 200 experiment(s) in log &nbsp;·&nbsp; showing baseline + latest</div>
+    <div class="sub">Last updated: 2026-07-13 17:07:18 &nbsp;·&nbsp; 205 experiment(s) in log &nbsp;·&nbsp; showing ablation group: <strong>ablation_electricity_20260713_1506</strong></div>
   </div>
 
   <!-- Comparison Table -->
@@ -101,31 +101,70 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="row-best">
+          <tr>
           <td>1</td>
-          <td><strong>dlinear_traffic_mse_only</strong><span class="tag baseline">baseline</span></td>
+          <td><strong>dlinear_electricity_mse_only</strong><span class="tag baseline">baseline</span></td>
           <td><code>mse_only</code></td>
           <td>96</td>
-          <td class="metric best-val">0.0008</td>
+          <td class="metric">5562302.0000</td>
           <td><span class="delta same">—</span></td>
-          <td class="metric best-val">0.0127</td>
+          <td class="metric">218.2578</td>
           <td><span class="delta same">—</span></td>
-          <td class="metric best-val">0.0282</td>
-          <td><a class="link" href="ablation_traffic_20260711_1734\dlinear_traffic_mse_only\report.html" target="_blank">open ↗</a></td>
-          <td style="color:var(--muted);font-size:12px;">2026-07-11 18:03:29</td>
+          <td class="metric">2358.4533</td>
+          <td><a class="link" href="ablation_electricity_20260713_1506/dlinear_electricity_mse_only/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-13 15:22:12</td>
         </tr>
 <tr>
           <td>2</td>
-          <td><strong>dlinear_etth1_adaptive</strong><span class="tag proposed">proposed</span></td>
+          <td><strong>dlinear_electricity_mse_mae_fixed</strong></td>
+          <td><code>mse_mae_fixed</code></td>
+          <td>96</td>
+          <td class="metric">5603159.5000</td>
+          <td><span class="delta worse">+0.73%</span></td>
+          <td class="metric">215.3794</td>
+          <td><span class="delta better">-1.32%</span></td>
+          <td class="metric">2367.0994</td>
+          <td><a class="link" href="ablation_electricity_20260713_1506/dlinear_electricity_mse_mae_fixed/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-13 15:37:47</td>
+        </tr>
+<tr>
+          <td>3</td>
+          <td><strong>dlinear_electricity_mse_trend_fixed</strong></td>
+          <td><code>mse_trend_fixed</code></td>
+          <td>96</td>
+          <td class="metric">5565471.5000</td>
+          <td><span class="delta worse">+0.06%</span></td>
+          <td class="metric">218.3150</td>
+          <td><span class="delta worse">+0.03%</span></td>
+          <td class="metric">2359.1252</td>
+          <td><a class="link" href="ablation_electricity_20260713_1506/dlinear_electricity_mse_trend_fixed/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-13 15:55:10</td>
+        </tr>
+<tr>
+          <td>4</td>
+          <td><strong>dlinear_electricity_mse_mae_trend_fixed</strong></td>
+          <td><code>mse_mae_trend_fixed</code></td>
+          <td>96</td>
+          <td class="metric">5598742.0000</td>
+          <td><span class="delta worse">+0.66%</span></td>
+          <td class="metric">215.8696</td>
+          <td><span class="delta better">-1.09%</span></td>
+          <td class="metric">2366.1661</td>
+          <td><a class="link" href="ablation_electricity_20260713_1506/dlinear_electricity_mse_mae_trend_fixed/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-13 16:08:04</td>
+        </tr>
+<tr class="row-best">
+          <td>5</td>
+          <td><strong>dlinear_electricity_adaptive</strong><span class="tag proposed">proposed</span></td>
           <td><code>adaptive</code></td>
           <td>96</td>
-          <td class="metric">9.2293</td>
-          <td><span class="delta worse">+1162195.05%</span></td>
-          <td class="metric">1.6321</td>
-          <td><span class="delta worse">+12767.47%</span></td>
-          <td class="metric">3.0380</td>
-          <td><a class="link" href="bilevel_smoke_test\dlinear_etth1_adaptive\report.html" target="_blank">open ↗</a></td>
-          <td style="color:var(--muted);font-size:12px;">2026-07-11 01:51:23</td>
+          <td class="metric best-val">5402308.5000</td>
+          <td><span class="delta better">-2.88%</span></td>
+          <td class="metric best-val">214.0660</td>
+          <td><span class="delta better">-1.92%</span></td>
+          <td class="metric best-val">2324.2867</td>
+          <td><a class="link" href="ablation_electricity_20260713_1506/dlinear_electricity_adaptive/report.html" target="_blank">open ↗</a></td>
+          <td style="color:var(--muted);font-size:12px;">2026-07-13 17:07:18</td>
         </tr>
         </tbody>
       </table>
@@ -143,7 +182,7 @@
   </div>
 
   <div class="footer">
-    Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-12 01:30:36
+    Adaptive Loss Weighting Framework &nbsp;·&nbsp; 2026-07-13 17:07:18
   </div>
 </div>
 
@@ -153,11 +192,11 @@ const barCtx = document.getElementById('barChart').getContext('2d');
 new Chart(barCtx, {
   type: 'bar',
   data: {
-    labels: ["dlinear_traffic_mse_only", "dlinear_etth1_adaptive"],
+    labels: ["dlinear_electricity_mse_only", "dlinear_electricity_mse_mae_fixed", "dlinear_electricity_mse_trend_fixed", "dlinear_electricity_mse_mae_trend_fixed", "dlinear_electricity_adaptive"],
     datasets: [
       {
         label: 'MSE',
-        data: [0.0008, 9.2293],
+        data: [5562302.0, 5603159.5, 5565471.5, 5598742.0, 5402308.5],
         backgroundColor: 'rgba(79,70,229,0.75)',
         borderColor: '#4f46e5',
         borderWidth: 1,
@@ -165,7 +204,7 @@ new Chart(barCtx, {
       },
       {
         label: 'MAE',
-        data: [0.0127, 1.6321],
+        data: [218.2578, 215.3794, 218.315, 215.8696, 214.066],
         backgroundColor: 'rgba(6,182,212,0.75)',
         borderColor: '#06b6d4',
         borderWidth: 1,
