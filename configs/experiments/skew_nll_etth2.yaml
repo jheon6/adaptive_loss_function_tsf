@@ -1,0 +1,14 @@
+exp_id: dlinear_etth2_skew_nll
+loss_type: skew_normal_nll
+model_name: DLinear
+data_name: ETTh2
+pred_len: 96
+seq_len: 336
+epochs: 50
+batch_size: 32
+learning_rate: 0.0001
+weight_gen_hidden_dim: 64
+weight_gen_dropout: 0.1
+weight_gen_lr_scale: 0.5
+feature_norm_momentum: 0.9
+max_skew: 5.0

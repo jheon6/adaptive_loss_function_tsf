@@ -63,6 +63,7 @@ class ExperimentConfig:
     weight_gen_lr_scale: float = 0.5     # weight generator LR = learning_rate * this scale
     loss_norm_momentum: float = 0.9 # EMA momentum for per-loss scale normalization
     feature_norm_momentum: float = 0.9   # EMA momentum for statistical feature normalization
+    max_skew: float = 5.0  # skew_normal_nll-only: bound on the skew-normal shape parameter alpha
 
     # ------------------------------------------------------------------ #
     # Bilevel (meta-learn the weight generator against val loss)

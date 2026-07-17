@@ -151,8 +151,12 @@ class Trainer:
             y = y.to(self.device)
             pred = self.backbone(x_enc)
             total_adaptive_loss += self.loss_fn(pred, y, x_enc).item()
-            # Raw MSE (normalized space) — scale-consistent monitoring signal
-            total_mse += ((pred - y) ** 2).mean().item()
+            # Raw MSE (normalized space) — scale-consistent monitoring signal.
+            # point_forecast() corrects for loss functions (e.g. skew-normal
+            # NLL) whose optimal `pred` is a distribution location, not its
+            # mean — the raw location is the wrong thing to score with MSE.
+            eval_pred = self.loss_fn.point_forecast(pred, x_enc) if hasattr(self.loss_fn, "point_forecast") else pred
+            total_mse += ((eval_pred - y) ** 2).mean().item()
 
         n = len(loader)
         return total_adaptive_loss / n, total_mse / n
@@ -168,7 +172,10 @@ class Trainer:
 
         for x_enc, y in loader:
             x_enc = x_enc.to(self.device)
-            pred = self.backbone(x_enc).cpu().numpy()
+            pred = self.backbone(x_enc)
+            if hasattr(self.loss_fn, "point_forecast"):
+                pred = self.loss_fn.point_forecast(pred, x_enc)
+            pred = pred.cpu().numpy()
             all_preds.append(pred)
             all_targets.append(y.numpy())
 
